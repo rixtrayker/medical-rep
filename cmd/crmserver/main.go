@@ -5,19 +5,24 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"os"
 
 	gosundheit "github.com/AppsFlyer/go-sundheit"
 	"github.com/AppsFlyer/go-sundheit/checks"
 	"github.com/cloudflare/tableflip"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rixtrayker/medical-rep/internal/app"
 )
 
 func main() {
 	// Initialize tableflip for zero-downtime deployments
 	upg, err := tableflip.New(tableflip.Options{})
+	// Create and initialize the application
+	application, err := app.New()
 	if err != nil {
 		log.Fatal("Failed to create tableflip upgrader:", err)
+		log.Fatal("Failed to create application:", err)
 	}
 	defer upg.Stop()
 
@@ -51,6 +56,10 @@ func main() {
 	err = h.RegisterCheck(httpCheck, gosundheit.InitialDelay(2*time.Second), gosundheit.ExecutionPeriod(10*time.Second))
 	if err != nil {
 		log.Fatal("Failed to register HTTP health check:", err)
+	// Run the application
+	if err := application.Run(); err != nil {
+		log.Printf("Application error: %v", err)
+		os.Exit(1)
 	}
 
 	err = h.RegisterCheck(customCheck, gosundheit.InitialDelay(1*time.Second), gosundheit.ExecutionPeriod(5*time.Second))
@@ -83,14 +92,14 @@ func main() {
 		} else {
 			w.WriteHeader(http.StatusOK)
 		}
-		
+
 		// Simple response for k8s/docker health checks
 		if healthy {
 			w.Write([]byte("OK"))
 		} else {
 			w.Write([]byte("UNHEALTHY"))
 		}
-		
+
 		// Log detailed results
 		log.Printf("Health check results: %+v, healthy: %v", results, healthy)
 	})

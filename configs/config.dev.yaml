@@ -1,0 +1,43 @@
+# Medical Rep API - Development Environment Configuration
+
+app:
+  environment: "development"
+  debug: true
+
+http:
+  port: 8080
+  cors:
+    allowed_origins:
+      - "http://localhost:3000"
+      - "http://localhost:3001"
+      - "http://127.0.0.1:3000"
+      - "http://127.0.0.1:3001"
+
+database:
+  host: "localhost"
+  port: 5432
+  database: "medical_rep_dev"
+  username: "postgres"
+  password: "postgres"
+  ssl_mode: "disable"
+  max_open_conns: 10
+  max_idle_conns: 2
+
+redis:
+  host: "localhost"
+  port: 6379
+  database: 1
+  pool_size: 5
+
+auth:
+  jwt_secret: "dev-jwt-secret-not-for-production"
+  jwt_expiration: "72h"
+  bcrypt_cost: 4
+
+logging:
+  level: "debug"
+  format: "console"
+  output: "stdout"
+
+health:
+  check_interval: "10s"
